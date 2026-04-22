@@ -87,11 +87,11 @@ def combine_fwhm_lorentzian(*components: np.ndarray) -> np.ndarray:
 
 
 
-def williamson_hall_x(theta_rad: np.ndarray) -> np.ndarray:
+def williamson_hall_x(theta_rad: np.ndarray, wavelength: float) -> np.ndarray:
     """x-axis helper for Williamson-Hall plots: 4 sin θ / λ."""
 
     theta = np.asarray(theta_rad)
-    return 4.0 * np.sin(theta)
+    return 4.0 * np.sin(theta) / wavelength
 
 
 
