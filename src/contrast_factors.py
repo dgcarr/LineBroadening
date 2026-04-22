@@ -73,3 +73,37 @@ def dislocation_broadening_term(rho: float, burgers: float, contrast: np.ndarray
     """
 
     return k_factor * burgers * np.sqrt(rho * np.asarray(contrast))
+
+
+def texture_weighted_contrast(
+    contrast_by_variant: np.ndarray,
+    variant_weights: np.ndarray,
+    axis: int = 0,
+) -> np.ndarray:
+    """Texture-weighted effective contrast factors for strongly textured states.
+
+    Parameters
+    ----------
+    contrast_by_variant
+        Array of reflection-wise contrast values resolved by texture variants.
+        Typical shape: (n_variants, n_reflections).
+    variant_weights
+        Non-negative weights for each texture variant (e.g., ODF-derived volume
+        fractions). Must sum to a positive value.
+    axis
+        Axis corresponding to texture variants in ``contrast_by_variant``.
+
+    Returns
+    -------
+    np.ndarray
+        Effective reflection-wise contrast factors after texture weighting.
+    """
+
+    C = np.asarray(contrast_by_variant, dtype=float)
+    w = np.asarray(variant_weights, dtype=float)
+    if np.any(w < 0):
+        raise ValueError("Texture weights must be non-negative.")
+    if np.sum(w) <= 0:
+        raise ValueError("At least one texture weight must be positive.")
+    w = w / np.sum(w)
+    return np.tensordot(w, C, axes=(0, axis))

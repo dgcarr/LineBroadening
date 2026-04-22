@@ -87,11 +87,11 @@ def combine_fwhm_lorentzian(*components: np.ndarray) -> np.ndarray:
 
 
 
-def williamson_hall_x(theta_rad: np.ndarray) -> np.ndarray:
+def williamson_hall_x(theta_rad: np.ndarray, wavelength: float) -> np.ndarray:
     """x-axis helper for Williamson-Hall plots: 4 sin θ / λ."""
 
     theta = np.asarray(theta_rad)
-    return 4.0 * np.sin(theta)
+    return 4.0 * np.sin(theta) / wavelength
 
 
 
@@ -114,6 +114,70 @@ def integral_breadth(two_theta_rad: np.ndarray, intensity: np.ndarray) -> float:
         raise ValueError("Peak height must be positive.")
     area = np.trapz(y, x)
     return area / peak_height
+
+
+def wa_size_fourier_coefficient(fourier_length: np.ndarray, area_weighted_domain_size: float) -> np.ndarray:
+    """Warren-Averbach size Fourier coefficient.
+
+    Uses the common exponential approximation:
+    A_S(L) = exp(-L / D_A),
+    where D_A is an area-weighted coherent domain size.
+    """
+
+    L = np.asarray(fourier_length, dtype=float)
+    return np.exp(-L / area_weighted_domain_size)
+
+
+def wa_strain_fourier_coefficient(reciprocal_lattice: np.ndarray, mean_square_strain: np.ndarray) -> np.ndarray:
+    """Warren-Averbach strain Fourier coefficient.
+
+    A_D(L, g) = exp(-2π² g² <ε²(L)>)
+    """
+
+    g = np.asarray(reciprocal_lattice, dtype=float)
+    eps2 = np.asarray(mean_square_strain, dtype=float)
+    return np.exp(-2.0 * np.pi**2 * g**2 * eps2)
+
+
+def wa_total_fourier_coefficient(
+    fourier_length: np.ndarray,
+    reciprocal_lattice: np.ndarray,
+    area_weighted_domain_size: float,
+    mean_square_strain: np.ndarray,
+) -> np.ndarray:
+    """Total Warren-Averbach Fourier coefficient from size/strain factorization.
+
+    A(L, g) = A_S(L) * A_D(L, g)
+    """
+
+    return wa_size_fourier_coefficient(
+        fourier_length=fourier_length,
+        area_weighted_domain_size=area_weighted_domain_size,
+    ) * wa_strain_fourier_coefficient(
+        reciprocal_lattice=reciprocal_lattice,
+        mean_square_strain=mean_square_strain,
+    )
+
+
+def wilkens_mean_square_strain_asymptotic(
+    fourier_length: np.ndarray,
+    rho: float,
+    burgers: float,
+    contrast_factor: np.ndarray,
+    outer_cutoff_radius: float,
+) -> np.ndarray:
+    """Asymptotic Krivoglaz-Wilkens-type mean square strain.
+
+    <ε²(L)> ≈ (ρ b² C / 4π) * L² * ln(Re / L)
+
+    This form is a reduced asymptotic representation intended for transparent
+    derivation workflows when full Wilkens integral kernels are not supplied.
+    """
+
+    L = np.asarray(fourier_length, dtype=float)
+    C = np.asarray(contrast_factor, dtype=float)
+    ratio = np.clip(outer_cutoff_radius / np.clip(L, 1e-30, None), 1.0, None)
+    return (rho * burgers**2 * C / (4.0 * np.pi)) * (L**2) * np.log(ratio)
 
 
 
