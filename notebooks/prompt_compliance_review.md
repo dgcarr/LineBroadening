@@ -76,7 +76,7 @@ Prompt required sections 1–9 with specific thematic content.
 
 ## Recommended next corrective actions
 
-1. Expand Section 1 into a thesis chapter/equation map with explicit pointers.
+1. ✅ Expand Section 1 into a thesis chapter/equation map with explicit pointers. **Completed in notebook update.**
 2. Add full Warren–Averbach and Krivoglaz–Wilkens derivation chain in markdown + executable code blocks.
 3. Add a dedicated hexagonal texture workflow subsection with reflection-wise `C_hkl` strategy under strong texture.
 4. Add explicit equation-to-code trace tags (e.g., Eq. S3.4 -> function X).
